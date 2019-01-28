@@ -1,2 +1,2 @@
-# facebook_mock_server_woonie
-배달의 민족 서버 만들어보기
+# facebook_mock_server_wonnie
+페이스북 서버 만들어보기
