@@ -2,12 +2,14 @@
 
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
+//error_reporting(E_ALL^ E_WARNING); 
+//ini_set('error_reporting','E_ALL ^ E_NOTICE');
+require 'function.php';
+$res = (Object)Array();
 
-    require 'function.php';
-    $res = (Object)Array();
     header('Content-Type: json');
     $req = json_decode(file_get_contents("php://input"));
- $jwt=$_SERVER['HTTP_X_ACCESS_TOKEN'];
+// $jwt=$_SERVER['HTTP_X_ACCESS_TOKEN'];
     try {
         addAccessLogs($accessLogs, $req);
         switch ($handler) {
@@ -73,10 +75,9 @@ ini_set("display_errors", 1);
 		
 	    case "login":
                 http_response_code(200);    
-
+		
 		$Id=$req->user_Id;
-                $Pw=$req->user_Pw;
-
+		$Pw=$req->user_Pw;
                     if(isValidUser($req)==false)
                     {
                         $res->isSuccess=FALSE;
@@ -88,7 +89,7 @@ ini_set("display_errors", 1);
 			    $res->isSuccess=TRUE;
 			    $res->code = 110;
 			    $res->data->user_Id=$Id;
-                        $res->data->jwt=getJWToken($Id,$Pw,JWT_SECRET_KEY);
+                        $res->data->jwt=getJWToken($Id,$Pw,'JWT_SECRET_KEY');
                         $res->message="로그인 성공";
                     
 		    }
@@ -112,54 +113,70 @@ ini_set("display_errors", 1);
 		$Pw=$req->user_Pw;
 		$Birth=$req->user_Birth;
 		$Gender=$req->user_Gender;
+		$Fullname=$Lastname.$Firstname;
 
+
+$check_Id_Email=preg_match("/^[0-9A-Z]([-_\.]?[0-9A-Z])*@[0-9A-Z]([-_\.]?[0-9A-Z])*\.[A-Z]{2,20}$/i", $Id);
+$check_Id_Number=preg_match("/^01([0|1|6|7|8|9]?)-?([0-9]{3,4})-?([0-9]{4})$/",$Id);
 		 if((mb_strlen($Lastname,'utf-8')<1))
                 {
                     $res->isSuccess=FALSE;
                         $res->code = 104;
-                    $res->message="성을 입력하세요";
-                }
-		 else if((mb_strlen($Firstname,'utf-8')<1))
+		    $res->message="성을 입력하세요";
+		     echo json_encode($res, JSON_NUMERIC_CHECK);
+return; 
+		 }
+		if((mb_strlen($Firstname,'utf-8')<1))
                 {
                     $res->isSuccess=FALSE;
                         $res->code = 105;
-                    $res->message="이름을 입력하세요";
+		    $res->message="이름을 입력하세요";
+		     echo json_encode($res, JSON_NUMERIC_CHECK);
+return;
                 }
-		 else if((mb_strlen($Id,'utf-8')<1)||(mb_strlen($Id,'utf-8')>20))	   
-                 {   
+		if($check_Id_Email!=true&&$check_Id_Number!=true)	
+	   	{   
 			$res->isSuccess=FALSE;   
 			$res->code = 102;
-                        $res->message="아이디는 1~20의 문자열입니다.";                
+                        $res->message="아이디의 형식을 확인하세요.";                
+ echo json_encode($res, JSON_NUMERIC_CHECK);
+return;
 		 }
-		 else  if(idcheck($req)!=false)
+		 if(idcheck($req)!=false)
                 {
                     $res->isSuccess=FALSE;
                         $res->code = 101;
                     $res->message="중복된 아이디입니다";
-                }
-                 else if((mb_strlen($Pw,'utf-8')<1)||(mb_strlen($Pw,'utf-8')>20))
+ echo json_encode($res, JSON_NUMERIC_CHECK);
+return; 
+		 }
+		if((mb_strlen($Pw,'utf-8')<1)||(mb_strlen($Pw,'utf-8')>20))
                  {    
 			 $res->isSuccess=FALSE;  
 			 $res->code = 103;
                          $res->message="비밀번호는 1~20의 문자열입니다.";                
+ echo json_encode($res, JSON_NUMERIC_CHECK);
+return;
 		 }
-		 else if(mb_strlen($Birth,'utf-8')<10)
+		 if(mb_strlen($Birth,'utf-8')<10)
 		 {
 			$res->isSuccess=FALSE;
                          $res->code = 106;
                          $res->message="생년월일을 올바르게 입력하세요";
-
+ echo json_encode($res, JSON_NUMERIC_CHECK);
+return;
 		 }
-		  else if(mb_strlen($Gender,'utf-8')>5)
+		 if(mb_strlen($Gender,'utf-8')>5)
                  {
                         $res->isSuccess=FALSE;
                          $res->code = 107;
                          $res->message="성별을 올바르게 입력하세요";
-
+ echo json_encode($res, JSON_NUMERIC_CHECK);
+return;
                  }
                   else
 		    {
-			signup($req);
+			signup($req,$Fullname);
                         $res->isSuccess=TRUE;
                         $res->code = 100;
                         $res->message="회원가입 성공";                
@@ -192,6 +209,67 @@ case"writeboard":
                             $res->result=writeboard($req,$id);
                         $res->code=200;
                         $res->message="글 쓰기 성공";
+                    }
+                }
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+		break;
+	
+		case"timeline":
+                 http_response_code(200); 
+               $jwt=$_SERVER['HTTP_X_ACCESS_TOKEN'];
+                    if(isValidHeader($jwt,'JWT_SECRET_KEY'))
+		    {
+			$content=$req->content;
+                        if(mb_strlen($content,'utf-8')<1)
+                         {
+                            $res->isSuccess=FALSE;
+                            $res->code = 132;
+                            $res->message="내용을 입력하세요";                     
+  echo json_encode($res, JSON_NUMERIC_CHECK);
+ 
+			    return;
+                        }
+                       else
+		       {
+			      
+                 //      $username=getUserinfo($jwt)[0]['userFullname'];
+			$userinfo=getUserinfo($jwt);
+		//$username=$userinfo[0]['userFullname'];
+		//echo $username;      
+			timeline($content,$userinfo);
+                       // $userinfo=getUserInfo($jwt);
+                       // $username=$userinfo->userFullname;
+                       // $username=$userinfo[0]['userFullname'];
+                       $res->isSuccess=TRUE;
+			$res->code=130;
+			$res->writer=$userinfo;
+                       $res->message="게시물 작성 성공";
+  echo json_encode($res, JSON_NUMERIC_CHECK);
+
+		       return; 
+                      }
+                    }
+//                echo json_encode($res, JSON_NUMERIC_CHECK);
+		        break;
+
+		case"writecomment":
+                 http_response_code(400);
+                if(isValidHeader($jwt,JWT_SECRET_KEY)!=false)
+                    {
+                        $number=$req->number;
+                        $id=getDataByJWToken($jwt, JWT_SECRET_KEY)->id;
+                        $content=$req->content;
+
+                        if(mb_strlen($content,'utf-8')<1)
+                        {
+                            $res->code = 401;
+                            $res->message="내용을 입력하세요";
+                        }
+                        else
+                        {
+                         $res->result=writecomment($req,$id);
+                        $res->code=400;
+                        $res->message="댓글 쓰기 성공";
                     }
                 }
                 echo json_encode($res, JSON_NUMERIC_CHECK);

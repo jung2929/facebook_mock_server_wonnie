@@ -1,8 +1,10 @@
 <?php
-
 error_reporting(E_ALL);
-
 ini_set("display_errors", 1);
+
+//error_reporting(E_ALL);
+
+//ini_set("display_errors", 1);
 
     use Firebase\JWT\JWT;
     use PHPMailer\PHPMailer\PHPMailer;
@@ -177,7 +179,7 @@ ini_set("display_errors", 1);
     function addAccessLogs($accessLogs, $body){
 
         if(isset($_SERVER['HTTP_X_ACCESS_TOKEN']))
-            $logData["JWT"] = getDataByJWToken($_SERVER['HTTP_X_ACCESS_TOKEN'], JWT_SECRET_KEY);
+            $logData["JWT"] = getDataByJWToken($_SERVER['HTTP_X_ACCESS_TOKEN'], 'JWT_SECRET_KEY');
         $logData["GET"] = $_GET;
         $logData["BODY"] = $body;
         $logData["REQUEST_METHOD"] = $_SERVER["REQUEST_METHOD"];

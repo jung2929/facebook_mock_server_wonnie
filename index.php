@@ -18,13 +18,28 @@ ini_set('default_charset', 'utf8mb4');
 
 $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
     //Main Server API
-    $r->addRoute('GET', '/', 'index');
-    $r->addRoute('GET', '/boardlist', 'boardlist');
-    $r->addRoute('GET', '/detail_view/{number:\d+}', 'detail_view');
-
+ //   $r->addRoute('GET', '/', 'index');
+ //   $r->addRoute('GET', '/boardlist', 'boardlist');
+ //   $r->addRoute('GET', '/playerlist', 'playerlist');
+ //   $r->addRoute('GET', '/detail_view/{number:\d+}', 'detail_view');
+ //   $r->addRoute('POST', '/login', 'login');
+ //   $r->addRoute('POST','/writeboard','writeboard');
+  //  $r->addRoute('POST','/writecomment','writecomment');
+  //  $r->addRoute('POST', '/testjwt', 'testjwt');
+//	$r->addRoute('POST','/signup','signup');  
 //    $r->addRoute('GET', '/logs/error', 'ERROR_LOGS');
 //    $r->addRoute('GET', '/logs/access', 'ACCESS_LOGS');
-
+$r->addRoute('GET', '/', 'index');
+    $r->addRoute('GET', '/board', 'boardlist');
+    $r->addRoute('GET', '/playerlist', 'playerlist');
+    $r->addRoute('GET', '/board/{number:\d+}', 'detail_view');
+    $r->addRoute('POST', '/login', 'login');
+    $r->addRoute('POST','/comment', 'writecomment');
+    $r->addRoute('POST', '/timeline','timeline');
+    $r->addRoute('POST', '/testjwt', 'testjwt');
+    $r->addRoute('POST','/user','signup');
+    $r->addRoute('DELETE','/board/{number:\d+}', 'deleteboard');
+    
 
 //    $r->addRoute('GET', '/users', 'get_all_users_handler');
 //    // {id} must be a number (\d+)

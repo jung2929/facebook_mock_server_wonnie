@@ -47,13 +47,13 @@ function playerlist(){
         return $res;
  }
 
-     function signup($user){
+     function signup($user,$Fullname){
         $pdo = pdoSqlConnect();
-	$query = "insert into user_TB values (?,?,?,?,?,?);";
+	$query = "insert into user_TB values (?,?,?,?,?,?,?);";
 
         $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
-        $st->execute([$user->user_Lastname,$user->user_Firstname,$user->user_Id,$user->user_Pw,$user->user_Birth,$user->user_Gender]);
+        $st->execute([$user->user_Lastname,$user->user_Firstname,$user->user_Id,$user->user_Pw,$user->user_Birth,$user->user_Gender,$Fullname]);
         $st=null;$pdo = null;
 
         return;
@@ -88,18 +88,46 @@ function playerlist(){
 	    return intval($res[0]["result"]);
      }
 
-	function writeboard($user,$id)
+function getUserinfo($jwt)
+{
+    $pdo = pdoSqlConnect();
+    $userId=getDataByJWToken($jwt,'JWT_SECRET_KEY')->user_Id;
+     $query = "SELECT * from user_TB where user_Id=?;";
+       $st = $pdo->prepare($query);
+   //    $st->execute([$param,$param]);
+       $st->execute([$userId]);
+//	$st->execute();   
+      $st->setFetchMode(PDO::FETCH_ASSOC);
+       $res = $st->fetchAll();
+
+       $st=null;$pdo = null;
+
+       return $res[0]["userFullname"];
+}
+
+function timeline($content,$userFullname)
     	{
-        $pdo = pdoSqlConnect();
-	    $query = "INSERT into board (title,content,id) values(?,?,?);";
+        $pdo = pdoSqlConnect();   
+	    $query = "INSERT into timeline (content,name) values(?,?);";
 	    $st = $pdo ->prepare($query);
 
-        $st->execute([$user->title,$user->content,$id]);
-
+        $st->execute([$content,$userFullname]);
         $st=null;$pdo = null;
 
         return;
 	}
+//	function writeboard($user,$id)
+ //   	{
+  //      $pdo = pdoSqlConnect();
+//	    $query = "INSERT into board (title,content,id) values(?,?,?);";
+//	    $st = $pdo ->prepare($query);
+
+//        $st->execute([$user->title,$user->content,$id]);
+
+  //      $st=null;$pdo = null;
+
+    //    return;
+//	}
 
 function writecomment($user,$id)
     {
