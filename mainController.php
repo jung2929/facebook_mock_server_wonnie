@@ -2,8 +2,10 @@
 
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
+ini_set('default_charset', 'utf8mb4');
+
 //error_reporting(E_ALL^ E_WARNING); 
-//ini_set('error_reporting','E_ALL ^ E_NOTICE');
+//ini_set('error_reporting','E_ALL ^ E_WARNING');
 require 'function.php';
 $res = (Object)Array();
 
@@ -57,12 +59,16 @@ $res = (Object)Array();
             * 마지막 수정 날짜 : 18.08.16
             */
             case "boardlist":
-                http_response_code(200);
-                $res->result = boardlist();
-                $res->code = 500;
-                $res->message = "성공";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
-
+		    http_response_code(200);
+		 $jwt=$_SERVER['HTTP_X_ACCESS_TOKEN'];
+		    if(isValidHeader($jwt,'JWT_SECRET_KEY'))
+		    { $res->isSuccess=TRUE;
+		$res->code = 120;
+		$res->data = boardlist();
+                $res->message = "타임라인 조회 성성공";
+		echo json_encode($res, JSON_NUMERIC_CHECK);
+		return;
+		    }
 		break;
 
             case "playerlist":
@@ -183,6 +189,11 @@ return;
                      }
 		echo json_encode($res, JSON_NUMERIC_CHECK);
 		break;
+/*
+            * API No. 2
+            * API Name : 회원가입 API
+            * 마지막 수정 날짜 : 19.02.01
+            */
 
 case"writeboard":
                  http_response_code(200);  
@@ -250,53 +261,169 @@ case"writeboard":
                       }
                     }
 //                echo json_encode($res, JSON_NUMERIC_CHECK);
-		        break;
+		    break;
+		    /*
+            * API No. 3
+            * API Name : 타임라인 작성  API
+            * 마지막 수정 날짜 : 19.02.02
+            */
+
+        case"friend":
+		http_response_code(200);
+		 $jwt=$_SERVER['HTTP_X_ACCESS_TOKEN'];
+        if(isValidHeader($jwt,'JWT_SECRET_KEY')!=false)
+           {
+               $myName=getUserinfo($jwt);
+               $friendName=$req->friendName;
+
+               if(mb_strlen($friendName,'utf-8')<1)
+               {
+                $res->isSuccess=FALSE;   
+                $res->code = 141;
+                $res->message="친구 이름을 입력하세요 ";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;         
+               }
+               if(!isValidUserId($friendName))
+               {
+                $res->isSuccess=FALSE;
+                $res->code = 142;
+                $res->message="존재하지 않는 사용자입니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;   
+	       }
+	       if(friendcheck($myName,$friendName))
+                {
+                    $res->isSuccess=FALSE;
+                    $res->code=143;
+                    $res->message="이미 친구입니다.";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+         return;
+                }
+               else
+               {
+                $res->isSuccess=TRUE;
+                $res->code=140;
+                friend($myName,$friendName);
+                $res->data->friendName=$friendName;
+                $res->message="친구가 되었습니다";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;   
+            }
+       }
+	break;
+	/*
+            * API No. 4
+            * API Name : 친구신청  API
+            * 마지막 수정 날짜 : 19.02.04
+            */
+
+case"friendlist":
+                http_response_code(200);
+                $jwt=$_SERVER['HTTP_X_ACCESS_TOKEN'];
+                if(isValidHeader($jwt,'JWT_SECRET_KEY'))
+                   {
+                       $myName=getUserinfo($jwt);
+                   //    $friend=friend($myname)[0]["friendName"];         
+                        $res->isSuccess=TRUE;
+                        $res->code=150;
+                        friendlist($myName);
+			$res->data->friendName=friendlist($myName)[0]["friendName"];                 
+		//	$res->data->friendName=$friend;
+                        $res->message="친구리스트 조회 성공";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;   
+		}
+	//	else
+	//	{	$res->isSuccess=FALSE;
+	//		$res->code=151;
+	//		$res->message="친구리스트 조회 실패";
+	//		echo json_encode($res, JSON_NUMERIC_CHECK);
+	//		return;
+	//	}
+                        break;
+/*
+            * API No. 5
+            * API Name : 친구리스트 조회  API
+            * 마지막 수정 날짜 : 19.02.04
+            */
+
+  case"searchUserName":
+                        http_response_code(200);
+                        $jwt=$_SERVER['HTTP_X_ACCESS_TOKEN'];
+                        if(isValidHeader($jwt,'JWT_SECRET_KEY'))
+			{
+				$userName =$vars['userName'];
+                           // $userName=$req->userName;    
+                            $res->isSuccess=TRUE;
+                                $res->code=160;
+                                $res->data->users=searchUserName($userName);
+                                $res->message="사용자 조회 성공";
+                                echo json_encode($res, JSON_NUMERIC_CHECK);
+                                return;   
+                            }
+			break;
+			/*
+            * API No. 6
+            * API Name : 사용자 조회  API
+            * 마지막 수정 날짜 : 19.02.04
+            */
+
+            case"file":
+                                http_response_code(200); 
+                              //  $jwt=$_SERVER['HTTP_X_ACCESS_TOKEN'];
+                              //  if(isValidHeader($jwt,'JWT_SECRET_KEY'))
+                               //    { 
+					   $res->code=170;
+					   fileupload();
+                                    //$res->data->files=fileupload();
+                                    $res->message="파일 업로드 성공";            
+                                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                                    return; 
+                                 //   }
+                               break;
+               /*
+            * API No. 7
+            * API Name : 파일 업로드  API
+            * 마지막 수정 날짜 : 19.02.06
+            */
 
 		case"writecomment":
-                 http_response_code(400);
-                if(isValidHeader($jwt,JWT_SECRET_KEY)!=false)
+			http_response_code(400);
+			$jwt=$_SERVER['HTTP_X_ACCESS_TOKEN'];
+		       
+		if(isValidHeader($jwt,'JWT_SECRET_KEY'))
                     {
                         $number=$req->number;
-                        $id=getDataByJWToken($jwt, JWT_SECRET_KEY)->id;
+                        $userName=getUserinfo($jwt);
                         $content=$req->content;
 
                         if(mb_strlen($content,'utf-8')<1)
-                        {
-                            $res->code = 401;
+			{
+		            $res->isSuccess=FALSE;
+                            $res->code = 181;
                             $res->message="내용을 입력하세요";
-                        }
+			    echo json_encode($res, JSON_NUMERIC_CHECK);
+		     return;	    
+			}
                         else
-                        {
-                         $res->result=writecomment($req,$id);
-                        $res->code=400;
+			{
+			writecomment($req,$userName);
+			$res->isSuccess=TRUE;
+                        $res->writer=getUserinfo($jwt);;
+                        $res->code=180;
                         $res->message="댓글 쓰기 성공";
-                    }
+			echo json_encode($res, JSON_NUMERIC_CHECK);
+		 return;	
+			}
                 }
-                echo json_encode($res, JSON_NUMERIC_CHECK);
 		break;
 
-		case"writecomment":
-                 http_response_code(400);
-                if(isValidHeader($jwt,JWT_SECRET_KEY)!=false)
-                    {
-                        $number=$req->number;
-                        $id=getDataByJWToken($jwt, JWT_SECRET_KEY)->id;
-                        $content=$req->content;
-
-                        if(mb_strlen($content,'utf-8')<1)
-                        {
-                            $res->code = 401;
-                            $res->message="내용을 입력하세요";
-                        }
-                        else
-                        {
-                         $res->result=writecomment($req,$id);
-                        $res->code=400;
-                        $res->message="댓글 쓰기 성공";
-                    }
-                }
-                echo json_encode($res, JSON_NUMERIC_CHECK);
-		break;
+/*
+            * API No. 9
+            * API Name : 댓글작성  API
+            * 마지막 수정 날짜 : 19.02.06
+          */
 		case"deleteboard":
                 http_response_code(200);
                if(isValidHeader($jwt,JWT_SECRET_KEY)!=false)

@@ -1,8 +1,8 @@
 <?php
 
-error_reporting(E_ALL);
+//error_reporting(E_ALL);
 
-ini_set("display_errors", 1);
+//ini_set("display_errors", 1);
 
 
 require './model/pdo.php';
@@ -30,7 +30,7 @@ $dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) {
 //    $r->addRoute('GET', '/logs/error', 'ERROR_LOGS');
 //    $r->addRoute('GET', '/logs/access', 'ACCESS_LOGS');
 $r->addRoute('GET', '/', 'index');
-    $r->addRoute('GET', '/board', 'boardlist');
+    $r->addRoute('GET', '/timeline', 'boardlist');
     $r->addRoute('GET', '/playerlist', 'playerlist');
     $r->addRoute('GET', '/board/{number:\d+}', 'detail_view');
     $r->addRoute('POST', '/login', 'login');
@@ -39,8 +39,10 @@ $r->addRoute('GET', '/', 'index');
     $r->addRoute('POST', '/testjwt', 'testjwt');
     $r->addRoute('POST','/user','signup');
     $r->addRoute('DELETE','/board/{number:\d+}', 'deleteboard');
-    
-
+    $r->addRoute('POST','/friend','friend');
+    $r->addRoute('GET','/friend','friendlist');
+    $r->addRoute('GET','/users/{userName}', 'searchUserName');
+    $r->addRoute('POST','/file','file');
 //    $r->addRoute('GET', '/users', 'get_all_users_handler');
 //    // {id} must be a number (\d+)
 //    $r->addRoute('GET', '/user/{id:\d+}', 'get_user_handler');

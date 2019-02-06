@@ -1,11 +1,11 @@
 <?php
-error_reporting(E_ALL);
-
-ini_set("display_errors", 1);
+//error_reporting(E_ALL);
+//ini_set("display_errors", 1);
+ini_set('default_charset', 'utf8mb4');
 
     function boardlist(){
         $pdo = pdoSqlConnect();
-        $query = "SELECT * FROM board order by number desc;";
+        $query = "SELECT * FROM timeline order by date desc;";
 
         $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
@@ -129,13 +129,13 @@ function timeline($content,$userFullname)
     //    return;
 //	}
 
-function writecomment($user,$id)
+function writecomment($user,$userName)
     {
         $pdo = pdoSqlConnect();
-	    $query = "INSERT into comment (number,id,content) values(?,?,?);";
+	    $query = "INSERT into comment (number,userFullname,content) values(?,?,?);";
 	    $st = $pdo ->prepare($query);
         
-        $st->execute([$user->number,$id,$user->content]);
+        $st->execute([$user->number,$userName,$user->content]);
         $st=null;$pdo = null;
 
         return;
@@ -166,4 +166,72 @@ function authoritycheck($number,$id)
 
         return intval($res[0]["result"]);
     }
+function friend($myName,$friendName){
+        $pdo = pdoSqlConnect();
+        $query = "INSERT INTO friend_TB (myName,friendName) values(?,?);";
 
+        $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+        $st->execute([$myName,$friendName]);
+
+        $st=null;$pdo = null;
+
+        return $res;
+}
+ function friendlist($myName){
+        $pdo = pdoSqlConnect();
+        $query = "SELECT * FROM friend_TB where myName=?;";
+
+        $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+        $st->execute([$myName]);
+        $st->setFetchMode(PDO::FETCH_ASSOC);
+        $res = $st->fetchAll();
+    
+        $st=null;$pdo = null;
+
+        return $res;
+ }
+
+function isValidUserId($friendName){
+	    $pdo = pdoSqlConnect();
+	    $query = "SELECT EXISTS(SELECT * FROM user_TB WHERE userFullname = ? ) as result;";
+
+	    $st = $pdo ->prepare($query);
+	    $st->execute([$friendName]);
+	    // $st->execute();
+	    $st->setFetchMode(PDO::FETCH_ASSOC);
+	    $res = $st->fetchAll();
+
+	    $st=null;$pdo = null;
+
+	    return intval($res[0]["result"]);
+    }
+
+function searchUserName($userName){
+        $pdo = pdoSqlConnect();
+        $query = "SELECT userFullname FROM user_TB where userFullName=?;";
+        
+        $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+        $st->execute([$userName]);
+        $st->setFetchMode(PDO::FETCH_ASSOC);
+        $res = $st->fetchAll();
+    
+        $st=null;$pdo = null;
+
+        return $res;
+    }
+ function friendcheck($myName,$friendName)
+    {
+        $pdo = pdoSqlConnect();
+	    $query = "SELECT exists(select * from friend_TB where myName=? and friendName=?) as result ;";
+	    $st = $pdo ->prepare($query);
+
+        $st->execute([$myName,$friendName]);
+        $st->setFetchMode(PDO::FETCH_ASSOC);
+        $res = $st->fetchAll();
+        $st=null;$pdo = null;
+        
+        return intval($res[0]["result"]);
+    }
